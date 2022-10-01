@@ -32,10 +32,15 @@ var roomCreated = false;
 const joinRoom = (socket, room) => {
   console.log("Joined Room");
   room.sockets.push(socket);
+  socket.join(room.id);
+  socket.roomId = room.id;
+
+  /*
   socket.join(room.id, () => {
     socket.roomId = room.id;
     console.log(socket.id, "Joined", room.id);
   });
+  */
 };
 
 const leaveRooms = (socket) => {
@@ -69,12 +74,11 @@ io.on('connection', (socket) => {
 
   //setTimeout(nextTurn, TURN_TIME, 'funky');
 
-  socket.on('ready', () => {
-    console.log(socket.id, "is ready!");
+  socket.on('ready', () => {    
     const room = rooms[socket.roomId];
-  
+      
     // when we have two players... START THE GAME!
-    if (room.sockets.length == 2) {
+    if (room.sockets.length == 2) {      
       // tell each player to start the game.
       for (const client of room.sockets) {
         client.emit('initGame');
