@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
   };
 
   // send the players object to the new player
-  socket.emit('currentPlayers', players);
+  //socket.emit('currentPlayers', players);
 
   // Introduce others to new player
   //socket.broadcast.emit('addPlayer', players[socket.id]);
