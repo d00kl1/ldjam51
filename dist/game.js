@@ -35,29 +35,29 @@ class SceneController extends Phaser.Scene {
         console.log("initGame");
 
         self.scene.start('game', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})
-      });
+    });
 
-      self.socket.on('currentPlayers', function (players) {          
-        Object.keys(self.players).forEach(function (id) {
-          if (self.players[id].playerId === self.socket.id) {
-            self.addPlayer(self.players[id]);
-          } else {
-            self.addOtherPlayers(self.players[id]);
-          }
-        });          
+    self.socket.on('currentPlayers', function (players) {
+      Object.keys(self.players).forEach(function (id) {
+        if (self.players[id].playerId === self.socket.id) {
+          self.addPlayer(self.players[id]);
+        } else {
+          self.addOtherPlayers(self.players[id]);
+        }
       });
+    });
 
-      self.socket.on('addPlayer', function (playerInfo) {          
-        self.addOtherPlayers(playerInfo);
-      });
-      
-      self.socket.on('removePlayer', function (playerId) {
-        console.log("removePlayer");
+    self.socket.on('addPlayer', function (playerInfo) {          
+      self.addOtherPlayers(playerInfo);
+    });
+    
+    self.socket.on('removePlayer', function (playerId) {
+      console.log("removePlayer");
 
-        if (self.otherPlayers.hasOwnProperty(playerId)) {            
-          delete self.otherPlayers[playerId]
-        }          
-      });
+      if (self.otherPlayers.hasOwnProperty(playerId)) {            
+        delete self.otherPlayers[playerId]
+      }
+    });
     
     self.scene.start('title', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})
   }  
@@ -99,13 +99,7 @@ class TitleScene extends Phaser.Scene {
     join_button.on('pointerdown', function (pointer) {
       this.setTint(0xff0000);
       self.scene.start('wait', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})  
-  });
-
-    /*
-    setTimeout(() => {
-      this.scene.start('game')
-    }, 10000)
-    */
+    });    
   }
 }
 
@@ -236,6 +230,14 @@ class GameScene extends Phaser.Scene {
       this.addColorSelector('green_color', 500, 650);
       this.addColorSelector('blue_color', 600, 650);
       this.addColorSelector('purple_color', 700, 650);
+
+      self.socket.on('nextTurn', function () {          
+        console.log("nextTurn");
+        // Erase everything
+        self.eraseDrawing();
+
+        // TODO: Draw edges provided by server
+      });
   }
 
   addColorSelector(name, x, y)
@@ -265,7 +267,8 @@ class GameScene extends Phaser.Scene {
   }
 
   eraseDrawing() {
-    this.images.forEach(destroyImage);
+    console.log('eraseDrawing');
+    this.images.forEach(this.destroyImage);
     this.images.splice(0, this.images.length)
   }
   

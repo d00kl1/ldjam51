@@ -20,11 +20,6 @@ app.get('/', (req, res) => {
 
 var players = {};
 
-
-function nextTurn(arg) {
-  console.log("nextTurn arg was => " + arg);
-}
-
 const rooms = {};
 
 var roomCreated = false;
@@ -69,10 +64,24 @@ const leaveRooms = (socket) => {
 
 const TURN_TIME = 10 * 1000;
 
+/*
+    setTimeout(() => {
+      this.scene.start('game')
+    }, 10000)
+    */
+
+function nextTurn(data) {
+     console.log("nextTurn arg was => " + data);
+     let room = data['room']
+
+     for (const client of room.sockets) {
+      client.emit('nextTurn');  
+    }
+}
+
+
 io.on('connection', (socket) => {
   console.log('user connected');
-
-  //setTimeout(nextTurn, TURN_TIME, 'funky');
 
   socket.on('ready', () => {    
     const room = rooms[socket.roomId];
@@ -81,8 +90,10 @@ io.on('connection', (socket) => {
     if (room.sockets.length == 2) {      
       // tell each player to start the game.
       for (const client of room.sockets) {
-        client.emit('initGame');
+        client.emit('initGame');  
       }
+
+      setTimeout(nextTurn, TURN_TIME, {'room': room});
     }
   });  
   
