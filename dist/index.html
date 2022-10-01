@@ -52,18 +52,17 @@
     }
 
     function addPlayer(self, playerInfo) {
-      console.log(playerInfo.name);
+      console.log('addPlayer: ' + playerInfo.name);
     }
 
     function addOtherPlayers(self, playerInfo) {
-      /*
+      console.log('addOtherPlayers: ' + playerInfo.name);      
       const otherPlayer = {};
 
       otherPlayer.playerId = playerInfo.playerId;
       otherPlayer.name = playerInfo.name;
 
-      self.otherPlayers.add(otherPlayer);
-      */
+      self.otherPlayers.add(otherPlayer);      
     }
 
     function create ()
