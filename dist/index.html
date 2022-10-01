@@ -62,7 +62,7 @@
 
     function create ()
     {      
-      socket = io();
+      socket = io();      
 
         socket.on('currentPlayers', function (players) {          
           Object.keys(players).forEach(function (id) {
@@ -114,7 +114,17 @@
         addColorSelector(this, 'yellow_color', 400, 650);
         addColorSelector(this, 'green_color', 500, 650);
         addColorSelector(this, 'blue_color', 600, 650);
-        addColorSelector(this, 'purple_color', 700, 650);
+        addColorSelector(this, 'purple_color', 700, 650);        
+
+        socket.emit("getRoomNames", "world", (response1) => {
+          console.log(response1);
+          const roomId = response1[0]["roomId"];
+          console.log('Room id ' + roomId);
+
+          socket.emit("joinRoom", roomId, (response2) => {
+            console.log("Joined Room");                        
+          });
+        });
     }
 
     function addColorSelector(context, name, x, y)
