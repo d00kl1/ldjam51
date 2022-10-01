@@ -36,16 +36,17 @@ io.on('connection', (socket) => {
   socket.emit('currentPlayers', players);
 
   // Introduce others to new player
-  //socket.broadcast.emit('addPlayer', players[socket.id]);
+  socket.broadcast.emit('addPlayer', players[socket.id]);
 
   socket.on('disconnect', function () {
-    console.log('user disconnected');
-    
-    // remove this player
-    delete players[socket.id];
+    console.log('user disconnected');    
 
     // Ask others to remove this player
-    //io.emit('removePlayer', socket.id);
+    // FIXME
+    //io.broadcast.emit('disconnect', socket.id);
+
+    // remove this player
+    delete players[socket.id];    
   });  
 });
 
