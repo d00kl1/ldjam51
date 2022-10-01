@@ -68,7 +68,8 @@
     {      
       socket = io();
 
-        socket.on('currentPlayers', function (players) {          
+        socket.on('currentPlayers', function (players) {
+          console.log("RECEIVED: " + players);
 
           /*
           Object.keys(players).forEach(function (id) {
