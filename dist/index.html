@@ -35,7 +35,7 @@
     
     var socket = null;
 
-    const otherPlayers = new Array();
+    const otherPlayers = {};
 
     function preload ()
     {        
@@ -57,13 +57,7 @@
 
     function addOtherPlayers(playerInfo) {
       console.log('addOtherPlayers: ' + playerInfo.name);      
-      
-      const otherPlayer = {};
-
-      otherPlayer.playerId = playerInfo.playerId;
-      otherPlayer.name = playerInfo.name;
-
-      otherPlayers.push(otherPlayer);
+      otherPlayers[playerInfo.playerId] = playerInfo.name;
     }
 
     function create ()
@@ -84,16 +78,12 @@
           addOtherPlayers(playerInfo);
         });
         
-        socket.on('disconnect', function (playerId) {
-          console.log("LOG: disconnect");
-          /*
-          otherPlayers.forEach(function (otherPlayer) {
-            if (playerId === otherPlayer.playerId) {
-              console.log('MATCH!');
-              otherPlayer.destroy();
-            }
-          });
-          */
+        socket.on('removePlayer', function (playerId) {
+          console.log("removePlayer");
+
+          if (otherPlayers.hasOwnProperty(playerId)) {            
+            delete otherPlayers[playerId]
+          }          
         });        
 
         var background = this.add.image(400, 300, 'background').setInteractive();

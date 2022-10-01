@@ -41,9 +41,8 @@ io.on('connection', (socket) => {
   socket.on('disconnect', function () {
     console.log('user disconnected');    
 
-    // Ask others to remove this player
-    // FIXME
-    //io.broadcast.emit('disconnect', socket.id);
+    // Ask others to remove this player    
+    io.emit('removePlayer', socket.id);
 
     // remove this player
     delete players[socket.id];    
