@@ -62,89 +62,6 @@ class SceneController extends Phaser.Scene {
   }  
 }
 
-class TileScene extends Phaser.Scene {
-  tile1;
-  tile2;
-  tile3;
-  tile4;
-
-  constructor() {    
-    super({ key: 'tile'});
-    this.tile1 = null;
-    this.tile2 = null;
-    this.tile3 = null;
-    this.tile4 = null;
-  }
-
-  preload ()
-  {
-      //this.load.image('red_brush', 'assets/red_color.png');
-  }
-
-  /*
-  create ()
-  {
-    var texture = this.textures.createCanvas('aatest', 256, 256);
-
-    var ctx = texture.context;
-
-    // ctx.fillStyle = '#ffffff';
-    // ctx.fillRect(0, 0, 256, 256);
-
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 12;
-    ctx.beginPath();
-    ctx.moveTo(20, 20);
-    ctx.bezierCurveTo(20, 100, 200, 100, 200, 20);
-    ctx.stroke();
-
-    texture.refresh();
-
-    this.add.image(300, 200, 'aatest');
-
-    this.add.image(600, 200, 'aatest').setAngle(20);
-
-    this.add.image(300, 450, 'red_brush').setScale(0.10);
-    this.add.image(600, 450, 'red_brush').setAngle(20);
-  }
-  */
-
-  create () {
-    this.tile0 = this.textures.createCanvas('tile0', 80, 80);
-    this.tile1 = this.textures.createCanvas('tile1', 80, 80);
-    this.tile2 = this.textures.createCanvas('tile2', 80, 80);
-    this.tile3 = this.textures.createCanvas('tile3', 80, 80);
-
-    this.tile0.context.fillStyle = '#00ffff';
-    this.tile0.context.fillRect(0, 0, 80, 80);
-
-    this.tile1.context.fillStyle = '#00ff00';
-    this.tile1.context.fillRect(0, 0, 80, 80);
-
-    this.tile2.context.fillStyle = '#f0f0f0';
-    this.tile2.context.fillRect(0, 0, 80, 80);
-
-    this.tile3.context.fillStyle = '#0f0f0f';
-    this.tile3.context.fillRect(0, 0, 80, 80);
-
-    this.tile0.refresh();
-    this.tile1.refresh();
-    this.tile2.refresh();
-    this.tile3.refresh();
-
-    let tileIndex = 0;
-    let j = 0;
-
-
-    for (let j = 0; j < 800; j += 80) {      
-      for (let i = 0; i < 800; i += 80) {
-          this.add.image(i, j, 'tile' + (tileIndex++ % 4)).setOrigin(0, 0).setScale(0.1);
-      }
-    }
-  }
-}
-
-
 class TitleScene extends Phaser.Scene {
   
   socket;
@@ -205,10 +122,21 @@ class WaitScene extends Phaser.Scene {
 
   preload() {
     this.load.image('wait_background', 'assets/wait_screen.png');
+    this.load.audio('tik_tok', 'assets/tik_tok.mp3');
   }
 
   create() {
     let self = this;    
+
+    self.backgroundSound = this.sound.play('tik_tok', {
+      mute: false,
+      volume: 1,
+      rate: 1,
+      detune: 0,
+      seek: 0,
+      loop: true,
+      delay: 0
+    });
 
     this.add.image(400, 300, 'wait_background');
 
@@ -263,6 +191,8 @@ class EndScene extends Phaser.Scene {
   }  
 
   buildTiles() {    
+    this.sound.removeByKey('tik_tok');
+    
     let RED_COLOR = '#fe5b59';
     let YELLOW_COLOR = '#f3ce52';
     let ORANGE_COLOR = '#f7a547';
@@ -341,7 +271,7 @@ class EndScene extends Phaser.Scene {
         this.add.image(i, j, tileId).setOrigin(0, 0).setScale(0.1);
       }
     }
-    
+
     var join_button = this.add.image(400, 700, 'join_button').setInteractive();
 
     join_button.on('pointerdown', function (pointer) {
@@ -396,6 +326,7 @@ class GameScene extends Phaser.Scene {
       this.load.image('blue_color', 'assets/blue_color.png');
       this.load.image('purple_color', 'assets/purple_color.png');
       this.load.image('erase', 'assets/erase.png');
+      this.load.audio('bong', 'assets/bong.mp3');
   }
 
   create ()
@@ -434,6 +365,8 @@ class GameScene extends Phaser.Scene {
 
       self.socket.on('endTurn', function () {          
         console.log("endTurn");
+
+        self.sound.play('bong');
 
         // Send drawing to server
         self.socket.emit("updateWork", self.points, () => {
