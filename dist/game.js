@@ -236,8 +236,7 @@ class EndScene extends Phaser.Scene {
   tile3;
   tile4;
 
-  constructor() {
-    //super({ key: 'title', active: true });
+  constructor() {    
     super({ key: 'end'});
 
     this.socket = null;    
@@ -260,6 +259,7 @@ class EndScene extends Phaser.Scene {
 
   preload() {
     //this.load.image('end_background', 'assets/end_background.png');
+    this.load.image('join_button', 'assets/join_button.png');
   }  
 
   buildTiles() {    
@@ -341,6 +341,13 @@ class EndScene extends Phaser.Scene {
         this.add.image(i, j, tileId).setOrigin(0, 0).setScale(0.1);
       }
     }
+    
+    var join_button = this.add.image(400, 700, 'join_button').setInteractive();
+
+    join_button.on('pointerdown', function (pointer) {
+      this.setTint(0xff0000);
+      self.scene.start('wait', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})  
+    });
   }  
 }
 
@@ -498,8 +505,7 @@ class GameScene extends Phaser.Scene {
 let config = {
     type: Phaser.AUTO,
     width: 800,
-    height: 800,    
-    //scene:  [TileScene, SceneController, TitleScene, WaitScene, GameScene, EndScene]
+    height: 800,        
     scene:  [SceneController, TitleScene, WaitScene, GameScene, EndScene]
 };
 
