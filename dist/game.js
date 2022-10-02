@@ -174,7 +174,7 @@ class TitleScene extends Phaser.Scene {
     let self = this;
 
     this.add.image(400, 300, 'title_background');
-    var join_button = this.add.image(400, 650, 'join_button').setInteractive();
+    var join_button = this.add.image(400, 700, 'join_button').setInteractive();
 
     join_button.on('pointerdown', function (pointer) {
       this.setTint(0xff0000);
