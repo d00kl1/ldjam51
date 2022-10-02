@@ -4,7 +4,6 @@ class SceneController extends Phaser.Scene {
   players;
 
   constructor() {
-    //super({ key: 'title', active: true });
     super({ key: 'scene_controller'});
 
     this.socket = null;
@@ -152,8 +151,7 @@ class TitleScene extends Phaser.Scene {
   players;
   otherPlayers;
 
-  constructor() {
-    //super({ key: 'title', active: true });
+  constructor() {    
     super({ key: 'title'});
 
     this.socket = null;
@@ -161,8 +159,7 @@ class TitleScene extends Phaser.Scene {
     this.otherPlayers = {};    
   }
 
-  init(data) {
-    console.log('TitleScene::init', data);
+  init(data) {    
     this.socket = data.socket;
     this.players = data.players;
     this.otherPlayers = data.otherPlayers;
@@ -192,8 +189,7 @@ class WaitScene extends Phaser.Scene {
   players;
   otherPlayers;
 
-  constructor() {
-    //super({ key: 'title', active: true });
+  constructor() {    
     super({ key: 'wait'});
 
     this.socket = null;
@@ -201,8 +197,7 @@ class WaitScene extends Phaser.Scene {
     this.otherPlayers = {};    
   }
 
-  init(data) {
-    console.log('WaitScene::init', data);
+  init(data) {    
     this.socket = data.socket;
     this.players = data.players;
     this.otherPlayers = data.otherPlayers;
@@ -256,13 +251,11 @@ class EndScene extends Phaser.Scene {
     this.tile4 = null;
   }
 
-  init(data) {
-    console.log('EndScene::init', data);
+  init(data) {    
     this.socket = data.socket;
     this.players = data.players;
     this.otherPlayers = data.otherPlayers;
     this.tileData = data.tileData;    
-    console.log('EndScene::init Tile Data', this.tileData);    
   }
 
   preload() {
@@ -281,24 +274,13 @@ class EndScene extends Phaser.Scene {
     let currTileToBuildIndex = 0
     let currTileToBuild = null;
 
-    for (const [key, value] of Object.entries(this.tileData)) {
-
-      console.log("buildTiles: " + key + " : " + value);
-      console.log('currTileToBuildIndex' + currTileToBuildIndex);
+    for (const [key, value] of Object.entries(this.tileData)) {      
       currTileToBuild = tilesToBuild[currTileToBuildIndex];
 
-      for (const [k, v] of Object.entries(value)) {
-        //console.log("buildTilesx1: " + k + " : " + v);       
-
-        //v.forEach(e => {
-          //console.log(v)
+      for (const [k, v] of Object.entries(value)) {        
           let x = v['x'];
           let y = v['y'];
           let c = v['c'];
-
-          //console.log('x= ' + x);
-          //console.log('y= ' + y);
-          console.log('c= ' + c);
 
           if (c === 'red_color') {
             currTileToBuild.context.fillStyle = RED_COLOR;
@@ -355,8 +337,8 @@ class EndScene extends Phaser.Scene {
     for (let j = 0; j < 800; j += 80) {      
       for (let i = 0; i < 800; i += 80) {
         let tileId = 'tile' + (tileIndex++ % PLAYER_COUNT);
-        //console.log(tileId);
-          this.add.image(i, j, tileId).setOrigin(0, 0).setScale(0.1);
+
+        this.add.image(i, j, tileId).setOrigin(0, 0).setScale(0.1);
       }
     }
   }  
@@ -374,8 +356,7 @@ class GameScene extends Phaser.Scene {
   players;
 
   constructor ()
-  {
-    //super({ key: 'game', active: true });
+  {    
     super({ key: 'game'});
 
     this.enableDraw = false;
@@ -390,8 +371,7 @@ class GameScene extends Phaser.Scene {
     this.otherPlayers = {};
   } 
 
-  init(data) {
-    console.log('GameScene::init', data);
+  init(data) {    
     this.socket = data.socket;
     this.players = data.players;
     this.otherPlayers = data.otherPlayers;
@@ -461,16 +441,10 @@ class GameScene extends Phaser.Scene {
         self.eraseDrawing();
 
         for (const [key, value] of Object.entries(data)) {
-          //console.log("DD");          
-
           let x = value['x'];
           let y = value['y'];
           let c = value['c'];
-
-          //console.log('x= ' + x);
-          //console.log('y= ' + y);
-          //console.log('c= ' + c);
-
+          
           let image = self.add.image(x, y, c);
           self.points.push({'x': x, 'y': y, 'c': c});
           self.images.push(image); 
@@ -478,13 +452,6 @@ class GameScene extends Phaser.Scene {
       });
 
       self.socket.on('endGame', function (data) {
-
-        for (const [key, value] of Object.entries(data)) {
-          console.log("endGame: " + key + " : " + value);
-
-          value.forEach(element => console.log(element));
-        }
-
         self.scene.start('end', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers, 'tileData': data})
       });
   }
