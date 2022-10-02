@@ -149,6 +149,39 @@ class WaitScene extends Phaser.Scene {
   }
 }
 
+class EndScene extends Phaser.Scene {
+  
+  socket;
+  players;
+  otherPlayers;
+
+  constructor() {
+    //super({ key: 'title', active: true });
+    super({ key: 'end'});
+
+    this.socket = null;
+    this.players = {};
+    this.otherPlayers = {};    
+  }
+
+  init(data) {
+    console.log('EndScene::init', data);
+    this.socket = data.socket;
+    this.players = data.players;
+    this.otherPlayers = data.otherPlayers;
+  }
+
+  preload() {
+    this.load.image('end_background', 'assets/end_background.png');
+  }
+
+  create() {
+    let self = this;
+    this.add.image(400, 300, 'end_background');
+  }
+}
+
+
 
 class GameScene extends Phaser.Scene {
   enableDraw;
@@ -264,7 +297,8 @@ class GameScene extends Phaser.Scene {
       });
 
       self.socket.on('endGame', function () {          
-        console.log("endGame");        
+        console.log("endGame");
+        self.scene.start('end', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})  
       });
   }
 
@@ -310,7 +344,7 @@ let config = {
     type: Phaser.AUTO,
     width: 800,
     height: 700,    
-    scene:  [SceneController, TitleScene, WaitScene, GameScene]
+    scene:  [SceneController, TitleScene, WaitScene, GameScene, EndScene]
 };
 
 let game = new Phaser.Game(config);
