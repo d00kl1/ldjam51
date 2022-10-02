@@ -240,13 +240,31 @@ class GameScene extends Phaser.Scene {
         });
       });
 
-      self.socket.on('beginTurn', function () {          
+      self.socket.on('beginTurn', function (data) {          
         console.log("beginTurn");
 
         // Erase everything
         self.eraseDrawing();
 
-        // TODO: Draw edges provided by server
+        for (const [key, value] of Object.entries(data)) {
+          //console.log("DD");          
+
+          let x = value['x'];
+          let y = value['y'];
+          let c = value['c'];
+
+          //console.log('x= ' + x);
+          //console.log('y= ' + y);
+          //console.log('c= ' + c);
+
+          let image = self.add.image(x, y, c);
+          self.points.push({'x': x, 'y': y, 'c': c});
+          self.images.push(image); 
+        }
+      });
+
+      self.socket.on('endGame', function () {          
+        console.log("endGame");        
       });
   }
 
