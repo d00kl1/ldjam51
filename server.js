@@ -43,14 +43,7 @@ const joinRoom = (socket, room) => {
   console.log("Joined Room: " + socket.id + ' -> ' + room.id);
   room.sockets.push(socket);
   socket.join(room.id);
-  socket.roomId = room.id;
-
-  /*
-  socket.join(room.id, () => {
-    socket.roomId = room.id;
-    console.log(socket.id, "Joined", room.id);
-  });
-  */
+  socket.roomId = room.id;  
 };
 
 const leaveRooms = (socket) => {
@@ -79,32 +72,20 @@ function endTurn(data) {
 }
 
 function playTurn(room, callback) {
-  console.log('playTurn');
+  console.log('playTurn' + ' in ' + room.id);
+
   var turnCount = room.sockets.length - 1;
-  console.log('turnCount = ' + turnCount);
-  console.log('currentTurn = ' + room.currentTurn);
-  //console.log('r = ' + room);
-
-  for (const [key, value] of Object.entries(room)) {
-    //console.log("PP");
-    //console.log(key, value);
-  }
-
-  //console.log('rc = ' + room.currentTurn);
-  //console.log('tc = ' + turnCount);
-
-  if (room.currentTurn < turnCount) {
-    //console.log('A');
+  console.log('turnCount = ' + turnCount + ' in ' + room.id);
+  console.log('currentTurn = ' + room.currentTurn + ' in ' + room.id);
+  
+  if (room.currentTurn < turnCount) {    
     let origData = []
 
     for (let i = 0; i < room.sockets.length; i++) {
         origData.push(players[room.sockets[i].id].data);
     }
 
-    //console.log('B');
-
-    for (let i = 0; i < room.sockets.length; i++) {
-        //console.log('C ' + i);
+    for (let i = 0; i < room.sockets.length; i++) {        
 
         let srcIndex = 0;
 
@@ -114,28 +95,21 @@ function playTurn(room, callback) {
             srcIndex = i - 1;
         }
 
-        //console.log('D');
-
         var data = origData[srcIndex];
         
-        players[room.sockets[i].id].data = Object.assign({}, data);
-
-        //console.log('E');
+        players[room.sockets[i].id].data = Object.assign({}, data);        
     }
 
     room.currentTurn += 1;
-
-    console.log('playTurn=false');
+    
     callback(false);
-  } else {
-    console.log('playTurn=true');
+  } else {    
     callback(true);
   }
 }
 
 function printPlayers() {
-  for (const [key, value] of Object.entries(players)) {
-    console.log("PP");
+  for (const [key, value] of Object.entries(players)) {    
     console.log(key, value);
   }
 }
@@ -160,11 +134,6 @@ io.on('connection', (socket) => {
   });
   
   socket.on('updateWork', (data) => {
-    // Did we receive updateWork from all players in room?
-    //console.log('socket.roomId = ' + socket.roomId);
-    //console.log('playerId = ' + socket.id);
-
-    let allUpdated = false;
     let playerCount = 0;
     let freshPlayerCount = 0
     let matchRoom = null;
@@ -174,24 +143,16 @@ io.on('connection', (socket) => {
       let room = rooms[id];
   
       if (room.sockets.includes(socket)) {
-        // Found matching room
-        //console.log('Found room match = ' + room);
+        // Found matching room        
         matchRoom = room;
 
         // Check if all players in room have 'fresh' state
-
         for (const s of room.sockets) {
     
-          if (s.id === socket.id) {
-            //console.log('Found player match');
+          if (s.id === socket.id) {            
             players[s.id].state = 'fresh'
             players[s.id].data = data;
-          }
-
-          //console.log('s.id= ' + s.id);
-
-          //console.log('state = ' + players[s.id].state);
-          
+          }         
 
           if (players[s.id].state === 'fresh') {
             freshPlayerCount += 1;
@@ -201,11 +162,6 @@ io.on('connection', (socket) => {
         }
       }
     }
-
-    //printPlayers();
-    console.log('Player Count = ' + playerCount);
-    console.log('Fresh Player Count = ' + freshPlayerCount);
-
     if (playerCount === freshPlayerCount) {
       playTurn(matchRoom, (endGame) => {
         if (endGame === true) {
