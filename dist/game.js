@@ -231,8 +231,18 @@ class GameScene extends Phaser.Scene {
       this.addColorSelector('blue_color', 600, 650);
       this.addColorSelector('purple_color', 700, 650);
 
-      self.socket.on('nextTurn', function () {          
-        console.log("nextTurn");
+      self.socket.on('endTurn', function () {          
+        console.log("endTurn");
+
+        // Send drawing to server
+        self.socket.emit("updateWork", self.points, () => {
+          console.log("Updated work");          
+        });
+      });
+
+      self.socket.on('beginTurn', function () {          
+        console.log("beginTurn");
+
         // Erase everything
         self.eraseDrawing();
 
@@ -261,7 +271,7 @@ class GameScene extends Phaser.Scene {
     if (this.enableDraw)
     {
       let image = this.add.image(game.input.mousePointer.x, game.input.mousePointer.y, this.currentBrush);
-      this.points.push(game.input.mousePointer)        
+      this.points.push({'x': game.input.mousePointer.x, 'y': game.input.mousePointer.y, 'c': this.currentBrush});
       this.images.push(image);              
     }
   }

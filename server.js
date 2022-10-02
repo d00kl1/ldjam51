@@ -70,13 +70,21 @@ const TURN_TIME = 10 * 1000;
     }, 10000)
     */
 
-function nextTurn(data) {
-     console.log("nextTurn arg was => " + data);
+function endTurn(data) {
+     console.log("endTurn arg was => " + data);
      let room = data['room']
 
      for (const client of room.sockets) {
-      client.emit('nextTurn');  
+      console.log('Sending endTurn to ' + client.id);
+      client.emit('endTurn');  
     }
+}
+
+function printPlayers() {
+  for (const [key, value] of Object.entries(players)) {
+    console.log("PP");
+    console.log(key, value);
+  }
 }
 
 
@@ -93,8 +101,54 @@ io.on('connection', (socket) => {
         client.emit('initGame');  
       }
 
-      setTimeout(nextTurn, TURN_TIME, {'room': room});
+      setTimeout(endTurn, TURN_TIME, {'room': room});
     }
+  });
+  
+  socket.on('updateWork', (data) => {
+    // Did we receive updateWork from all players in room?
+    console.log('socket.roomId = ' + socket.roomId);
+    console.log('playerId = ' + socket.id);
+
+    let allUpdated = false;
+    let playerCount = 0;
+    let freshPlayerCount = 0;
+
+    // Find all player ids in room
+    for (const id in rooms) {
+      const room = rooms[id];
+  
+      if (room.sockets.includes(socket)) {
+        // Found matching room
+        console.log('Found room match = ' + room);
+
+        // Check if all players in room have 'fresh' state
+
+        for (const s of room.sockets) {
+    
+          if (s.id === socket.id) {
+            console.log('Found player match');
+            players[s.id].state = 'fresh'
+            players[s.id].data = data;
+          }
+
+          console.log('s.id= ' + s.id);
+
+          console.log('state = ' + players[s.id].state);
+          
+
+          if (players[s.id].state === 'fresh') {
+            freshPlayerCount += 1;
+          }
+
+          playerCount += 1;
+        }
+      }
+    }
+
+    printPlayers();
+    console.log('Player Count = ' + playerCount);
+    console.log('Fresh Player Count = ' + freshPlayerCount);
   });  
   
   socket.on('getRoomNames', (data, callback) => {
@@ -155,7 +209,9 @@ io.on('connection', (socket) => {
   // create a new player and add it to our players object
   players[socket.id] = {    
     playerId: socket.id,
-    name: shortName    
+    name: shortName,
+    state: 'stale',
+    data: null
   };
 
   // send the players object to the new player
