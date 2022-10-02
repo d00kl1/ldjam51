@@ -134,18 +134,15 @@ class WaitScene extends Phaser.Scene {
 
     this.add.image(400, 300, 'wait_background');
 
-    self.socket.emit("getRoomNames", "world", (response1) => {
-      console.log(response1);
-      const roomId = response1[0]["roomId"];
-      console.log('Room id ' + roomId);
+    self.socket.emit("joinRoom", (response) => {
 
-      self.socket.emit("joinRoom", roomId, (response2) => {
-        console.log("Joined Room");
-        
+      if (response === false) {
+        console.log('TODO: Go to information screen');
+      } else {
+        console.log("Joined Room: " + response);        
         self.socket.emit("ready");
-      });
-    });
-    
+      }      
+    });    
   }
 }
 

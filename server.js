@@ -18,14 +18,29 @@ app.get('/', (req, res) => {
   res.sendFile(HTML_FILE);
 });
 
-var players = {};
+let players = {};
+let rooms = {};
 
-const rooms = {};
+const ROOM_COUNT = 10;
+const PLAYER_COUNT = 3;
+const TURN_TIME = 10 * 1000;
 
-var roomCreated = false;
+for (let i = 0; i < ROOM_COUNT; ++i) {
+  let a = uuidv4(); 
+  rooms[a] = {
+    id: a,
+    name: 'TestRoom_' + i,
+    currentTurn: 0,
+    sockets: [],
+    state: 'waiting'
+  };
+
+  console.log('created room: ' + a + ' name: ' + rooms[a].name);
+}
+
 
 const joinRoom = (socket, room) => {
-  console.log("Joined Room");
+  console.log("Joined Room: " + socket.id + ' -> ' + room.id);
   room.sockets.push(socket);
   socket.join(room.id);
   socket.roomId = room.id;
@@ -39,39 +54,22 @@ const joinRoom = (socket, room) => {
 };
 
 const leaveRooms = (socket) => {
-  console.log("leaveRooms");
-
-  const roomsToDelete = [];
   for (const id in rooms) {
     const room = rooms[id];
 
     if (room.sockets.includes(socket)) {
       socket.leave(id);
-
+      console.log("leaveRoom user: " + socket.id + ' from ' + id);
       room.sockets = room.sockets.filter((item) => item !== socket);
     }
     
     if (room.sockets.length == 0) {      
-      roomsToDelete.push(room);
+      room.state = 'waiting';      
     }
-  }
-
-  // Delete all the empty rooms that we found earlier
-  for (const room of roomsToDelete) {
-    delete rooms[room.id];
   }
 }; 
 
-const TURN_TIME = 10 * 1000;
-
-/*
-    setTimeout(() => {
-      this.scene.start('game')
-    }, 10000)
-    */
-
-function endTurn(data) {
-     console.log("endTurn arg was => " + data);
+function endTurn(data) {     
      let room = data['room']
 
      for (const client of room.sockets) {
@@ -140,16 +138,17 @@ function printPlayers() {
   }
 }
 
-let MAX_PLAYERS = 3;
-
 io.on('connection', (socket) => {
-  console.log('user connected');
+  console.log('connected user: ' + socket.id);
 
   socket.on('ready', () => {    
-    const room = rooms[socket.roomId];
+    console.log('ready to play ' + socket.id + ' in ' +  socket.roomId);
+    let room = rooms[socket.roomId];
 
-    if (room.sockets.length == MAX_PLAYERS) {      
-      // tell each player to start the game.
+    if (room.sockets.length === PLAYER_COUNT) {
+      room.currentTurn = 0;
+      room.state = 'inUse';
+
       for (const client of room.sockets) {
         client.emit('initGame');  
       }
@@ -208,6 +207,9 @@ io.on('connection', (socket) => {
     if (playerCount === freshPlayerCount) {
       playTurn(matchRoom, (endGame) => {
         if (endGame === true) {
+          matchRoom.currentTurn = 0;
+          matchRoom.state = 'waiting';
+
           for (const client of matchRoom.sockets) {
             client.emit('endGame');  
           }
@@ -224,19 +226,6 @@ io.on('connection', (socket) => {
   });  
   
   socket.on('getRoomNames', (data, callback) => {
-    if (roomCreated == false) {
-      const room = {
-        id: uuidv4(), // generate a unique id for the new room, that way we don't need to deal with duplicates.
-        name: 'TestRoom',
-        currentTurn: 0,
-        sockets: []
-      };
-      
-      rooms[room.id] = room;
-      console.log('rooms= ' + rooms);
-      roomCreated = true;
-    }
-
     const roomNames = [];
 
     for (const roomId in rooms) {    
@@ -263,10 +252,24 @@ io.on('connection', (socket) => {
     callback();
   });
   
-  socket.on('joinRoom', (roomId, callback) => {
-    const room = rooms[roomId];
-    joinRoom(socket, room);
-    callback();
+  socket.on('joinRoom', (callback) => {
+    let joined = false;
+
+    for (const roomId in rooms) {
+      console.log('checking availability for ' + socket.id + ' in room: ' + roomId);
+
+      let room = rooms[roomId];
+
+      if ((room.sockets.length < PLAYER_COUNT)
+          && (room.state === 'waiting')) {
+        // Found availability in room
+        joinRoom(socket, room);
+        joined = true;
+        break;
+      }
+    }    
+    
+    callback(joined);
   });
   
   socket.on('leaveRoom', () => {
@@ -295,7 +298,7 @@ io.on('connection', (socket) => {
   socket.broadcast.emit('addPlayer', players[socket.id]);  
 
   socket.on('disconnect', function () {
-    console.log('user disconnected');    
+    console.log('disconnected user: ' + socket.id);    
 
     // Ask others to remove this player    
     io.emit('removePlayer', socket.id);
