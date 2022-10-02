@@ -213,8 +213,11 @@ io.on('connection', (socket) => {
           }
         } else {
           for (const client of matchRoom.sockets) {
-            client.emit('beginTurn', players[client.id].data);
-          } 
+            client.emit('beginTurn', players[client.id].data);            
+            players[client.id].state = 'stale';
+          }
+
+          setTimeout(endTurn, TURN_TIME, {'room': matchRoom});
         }
       })
     }
