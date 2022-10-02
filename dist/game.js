@@ -277,7 +277,7 @@ class EndScene extends Phaser.Scene {
     let BLUE_COLOR = '#57b9f2';
     let PURPLE_COLOR = '#d186df';
 
-    let tilesToBuild = [this.tile0, this.tile1];
+    let tilesToBuild = [this.tile0, this.tile1, this.tile2, this.tile3];
     let currTileToBuildIndex = 0
     let currTileToBuild = null;
 
@@ -324,28 +324,30 @@ class EndScene extends Phaser.Scene {
   }
   
   create () {
-    let PLAYER_COUNT = 2;
+    let PLAYER_COUNT = 4;
     let self = this;
     //this.add.image(0, 0, 'end_background').setOrigin(0, 0);
 
     this.tile0 = this.textures.createCanvas('tile0', 800, 800);
     this.tile1 = this.textures.createCanvas('tile1', 800, 800);
+    this.tile2 = this.textures.createCanvas('tile2', 800, 800);
+    this.tile3 = this.textures.createCanvas('tile3', 800, 800);
 
-    this.tile0.context.fillStyle = '#00ffff';
+    this.tile0.context.fillStyle = '#e0e0e0';
     this.tile0.context.fillRect(0, 0, 800, 800);
-
-    this.tile1.context.fillStyle = '#00ff00';
+    this.tile1.context.fillStyle = '#e0e0e0';
     this.tile1.context.fillRect(0, 0, 800, 800);
+    this.tile2.context.fillStyle = '#e0e0e0';
+    this.tile2.context.fillRect(0, 0, 800, 800);
+    this.tile3.context.fillStyle = '#e0e0e0';
+    this.tile3.context.fillRect(0, 0, 800, 800);
 
     self.buildTiles();
 
-    //this.tile2 = this.textures.createCanvas('tile2', 800, 800);
-    //this.tile3 = this.textures.createCanvas('tile3', 800, 800);
-
     this.tile0.refresh();
     this.tile1.refresh();
-    //this.tile2.refresh();
-    //this.tile3.refresh();
+    this.tile2.refresh();
+    this.tile3.refresh();
 
     let tileIndex = 0;
     let j = 0;

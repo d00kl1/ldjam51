@@ -22,7 +22,7 @@ let players = {};
 let rooms = {};
 
 const ROOM_COUNT = 10;
-const PLAYER_COUNT = 2;
+const PLAYER_COUNT = 4;
 const TURN_TIME = 10 * 1000;
 
 for (let i = 0; i < ROOM_COUNT; ++i) {
@@ -81,6 +81,8 @@ function endTurn(data) {
 function playTurn(room, callback) {
   console.log('playTurn');
   var turnCount = room.sockets.length - 1;
+  console.log('turnCount = ' + turnCount);
+  console.log('currentTurn = ' + room.currentTurn);
   //console.log('r = ' + room);
 
   for (const [key, value] of Object.entries(room)) {
@@ -119,9 +121,9 @@ function playTurn(room, callback) {
         players[room.sockets[i].id].data = Object.assign({}, data);
 
         //console.log('E');
-
-        room.currentTurn += 1;
     }
+
+    room.currentTurn += 1;
 
     console.log('playTurn=false');
     callback(false);
