@@ -123,10 +123,24 @@ class WaitScene extends Phaser.Scene {
   preload() {
     this.load.image('wait_background', 'assets/wait_screen.png');
     this.load.audio('tik_tok', 'assets/tik_tok.mp3');
+    this.load.spritesheet('hourglass_spritesheet', 'assets/hourglass_spritesheet.png', { frameWidth: 276, frameHeight: 276});
   }
 
   create() {
-    let self = this;    
+    let self = this;
+
+    this.add.image(400, 300, 'wait_background');
+
+    let sprite = this.add.sprite(400, 300, 'hourglass_spritesheet');
+
+    this.anims.create({
+      key: "spin",
+      frameRate: 7,
+      frames: this.anims.generateFrameNumbers("hourglass_spritesheet", { start: 0, end: 6 }),
+      repeat: -1
+  });
+
+    sprite.play('spin');
 
     self.backgroundSound = this.sound.play('tik_tok', {
       mute: false,
@@ -137,8 +151,6 @@ class WaitScene extends Phaser.Scene {
       loop: true,
       delay: 0
     });
-
-    this.add.image(400, 300, 'wait_background');
 
     self.socket.emit("joinRoom", (response) => {
 
