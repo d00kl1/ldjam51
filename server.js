@@ -22,7 +22,7 @@ let players = {};
 let rooms = {};
 
 const ROOM_COUNT = 10;
-const PLAYER_COUNT = 3;
+const PLAYER_COUNT = 2;
 const TURN_TIME = 10 * 1000;
 
 for (let i = 0; i < ROOM_COUNT; ++i) {
@@ -114,8 +114,8 @@ function playTurn(room, callback) {
 
         //console.log('D');
 
-        var data = origData[srcIndex];        
-
+        var data = origData[srcIndex];
+        
         players[room.sockets[i].id].data = Object.assign({}, data);
 
         //console.log('E');
@@ -210,12 +210,18 @@ io.on('connection', (socket) => {
           matchRoom.currentTurn = 0;
           matchRoom.state = 'waiting';
 
+          let data = {};
+
           for (const client of matchRoom.sockets) {
-            client.emit('endGame');  
+              data[client.id] = players[client.id].data;            
+          }
+
+          for (const client of matchRoom.sockets) {
+            client.emit('endGame', data);  
           }
         } else {
           for (const client of matchRoom.sockets) {
-            client.emit('beginTurn', players[client.id].data);            
+            client.emit('beginTurn', players[client.id].data);
             players[client.id].state = 'stale';
           }
 

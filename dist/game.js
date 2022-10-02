@@ -63,6 +63,89 @@ class SceneController extends Phaser.Scene {
   }  
 }
 
+class TileScene extends Phaser.Scene {
+  tile1;
+  tile2;
+  tile3;
+  tile4;
+
+  constructor() {    
+    super({ key: 'tile'});
+    this.tile1 = null;
+    this.tile2 = null;
+    this.tile3 = null;
+    this.tile4 = null;
+  }
+
+  preload ()
+  {
+      //this.load.image('red_brush', 'assets/red_color.png');
+  }
+
+  /*
+  create ()
+  {
+    var texture = this.textures.createCanvas('aatest', 256, 256);
+
+    var ctx = texture.context;
+
+    // ctx.fillStyle = '#ffffff';
+    // ctx.fillRect(0, 0, 256, 256);
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 12;
+    ctx.beginPath();
+    ctx.moveTo(20, 20);
+    ctx.bezierCurveTo(20, 100, 200, 100, 200, 20);
+    ctx.stroke();
+
+    texture.refresh();
+
+    this.add.image(300, 200, 'aatest');
+
+    this.add.image(600, 200, 'aatest').setAngle(20);
+
+    this.add.image(300, 450, 'red_brush').setScale(0.10);
+    this.add.image(600, 450, 'red_brush').setAngle(20);
+  }
+  */
+
+  create () {
+    this.tile0 = this.textures.createCanvas('tile0', 80, 80);
+    this.tile1 = this.textures.createCanvas('tile1', 80, 80);
+    this.tile2 = this.textures.createCanvas('tile2', 80, 80);
+    this.tile3 = this.textures.createCanvas('tile3', 80, 80);
+
+    this.tile0.context.fillStyle = '#00ffff';
+    this.tile0.context.fillRect(0, 0, 80, 80);
+
+    this.tile1.context.fillStyle = '#00ff00';
+    this.tile1.context.fillRect(0, 0, 80, 80);
+
+    this.tile2.context.fillStyle = '#f0f0f0';
+    this.tile2.context.fillRect(0, 0, 80, 80);
+
+    this.tile3.context.fillStyle = '#0f0f0f';
+    this.tile3.context.fillRect(0, 0, 80, 80);
+
+    this.tile0.refresh();
+    this.tile1.refresh();
+    this.tile2.refresh();
+    this.tile3.refresh();
+
+    let tileIndex = 0;
+    let j = 0;
+
+
+    for (let j = 0; j < 800; j += 80) {      
+      for (let i = 0; i < 800; i += 80) {
+          this.add.image(i, j, 'tile' + (tileIndex++ % 4)).setOrigin(0, 0).setScale(0.1);
+      }
+    }
+  }
+}
+
+
 class TitleScene extends Phaser.Scene {
   
   socket;
@@ -151,14 +234,26 @@ class EndScene extends Phaser.Scene {
   socket;
   players;
   otherPlayers;
+  tileData;
+
+  tile1;
+  tile2;
+  tile3;
+  tile4;
 
   constructor() {
     //super({ key: 'title', active: true });
     super({ key: 'end'});
 
-    this.socket = null;
+    this.socket = null;    
     this.players = {};
     this.otherPlayers = {};    
+    this.tileData = null;
+
+    this.tile1 = null;
+    this.tile2 = null;
+    this.tile3 = null;
+    this.tile4 = null;
   }
 
   init(data) {
@@ -166,16 +261,103 @@ class EndScene extends Phaser.Scene {
     this.socket = data.socket;
     this.players = data.players;
     this.otherPlayers = data.otherPlayers;
+    this.tileData = data.tileData;    
+    console.log('EndScene::init Tile Data', this.tileData);    
   }
 
   preload() {
-    this.load.image('end_background', 'assets/end_background.png');
-  }
+    //this.load.image('end_background', 'assets/end_background.png');
+  }  
 
-  create() {
-    let self = this;
-    this.add.image(400, 300, 'end_background');
+  buildTiles() {    
+    let RED_COLOR = '#fe5b59';
+    let YELLOW_COLOR = '#f3ce52';
+    let ORANGE_COLOR = '#f7a547';
+    let GREEN_COLOR = '#6acd5b';
+    let BLUE_COLOR = '#57b9f2';
+    let PURPLE_COLOR = '#d186df';
+
+    let tilesToBuild = [this.tile0, this.tile1];
+    let currTileToBuildIndex = 0
+    let currTileToBuild = null;
+
+    for (const [key, value] of Object.entries(this.tileData)) {
+
+      console.log("buildTiles: " + key + " : " + value);
+      console.log('currTileToBuildIndex' + currTileToBuildIndex);
+      currTileToBuild = tilesToBuild[currTileToBuildIndex];
+
+      for (const [k, v] of Object.entries(value)) {
+        //console.log("buildTilesx1: " + k + " : " + v);       
+
+        //v.forEach(e => {
+          //console.log(v)
+          let x = v['x'];
+          let y = v['y'];
+          let c = v['c'];
+
+          //console.log('x= ' + x);
+          //console.log('y= ' + y);
+          console.log('c= ' + c);
+
+          if (c === 'red_color') {
+            currTileToBuild.context.fillStyle = RED_COLOR;
+          } else if (c === 'orange_color') {
+            currTileToBuild.context.fillStyle = ORANGE_COLOR;
+          } else if (c === 'yellow_color') {
+            currTileToBuild.context.fillStyle = YELLOW_COLOR;
+          } else if (c === 'green_color') {
+            currTileToBuild.context.fillStyle = GREEN_COLOR;
+          } else if (c === 'blue_color') {
+            currTileToBuild.context.fillStyle = BLUE_COLOR;
+          } else if (c === 'purple_color') {
+            currTileToBuild.context.fillStyle = PURPLE_COLOR;
+          }
+
+          currTileToBuild.context.fillRect(x, y, 64, 64);
+        }
+
+        currTileToBuildIndex += 1;
+        //);
+      //}
+    }
   }
+  
+  create () {
+    let PLAYER_COUNT = 2;
+    let self = this;
+    //this.add.image(0, 0, 'end_background').setOrigin(0, 0);
+
+    this.tile0 = this.textures.createCanvas('tile0', 800, 800);
+    this.tile1 = this.textures.createCanvas('tile1', 800, 800);
+
+    this.tile0.context.fillStyle = '#00ffff';
+    this.tile0.context.fillRect(0, 0, 800, 800);
+
+    this.tile1.context.fillStyle = '#00ff00';
+    this.tile1.context.fillRect(0, 0, 800, 800);
+
+    self.buildTiles();
+
+    //this.tile2 = this.textures.createCanvas('tile2', 800, 800);
+    //this.tile3 = this.textures.createCanvas('tile3', 800, 800);
+
+    this.tile0.refresh();
+    this.tile1.refresh();
+    //this.tile2.refresh();
+    //this.tile3.refresh();
+
+    let tileIndex = 0;
+    let j = 0;
+
+    for (let j = 0; j < 800; j += 80) {      
+      for (let i = 0; i < 800; i += 80) {
+        let tileId = 'tile' + (tileIndex++ % PLAYER_COUNT);
+        //console.log(tileId);
+          this.add.image(i, j, tileId).setOrigin(0, 0).setScale(0.1);
+      }
+    }
+  }  
 }
 
 
@@ -293,9 +475,15 @@ class GameScene extends Phaser.Scene {
         }
       });
 
-      self.socket.on('endGame', function () {          
-        console.log("endGame");
-        self.scene.start('end', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})  
+      self.socket.on('endGame', function (data) {
+
+        for (const [key, value] of Object.entries(data)) {
+          console.log("endGame: " + key + " : " + value);
+
+          value.forEach(element => console.log(element));
+        }
+
+        self.scene.start('end', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers, 'tileData': data})
       });
   }
 
@@ -327,6 +515,7 @@ class GameScene extends Phaser.Scene {
 
   eraseDrawing() {
     console.log('eraseDrawing');
+    this.points.splice(0, this.points.length)
     this.images.forEach(this.destroyImage);
     this.images.splice(0, this.images.length)
   }
@@ -340,7 +529,8 @@ class GameScene extends Phaser.Scene {
 let config = {
     type: Phaser.AUTO,
     width: 800,
-    height: 700,    
+    height: 800,    
+    //scene:  [TileScene, SceneController, TitleScene, WaitScene, GameScene, EndScene]
     scene:  [SceneController, TitleScene, WaitScene, GameScene, EndScene]
 };
 
