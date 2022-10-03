@@ -1,85 +1,24 @@
 class SceneController extends Phaser.Scene {
-  socket;
-  otherPlayers;
-  players;
-
   constructor() {
     super({ key: 'scene_controller'});
-
-    this.socket = null;
-
-    this.players = {};
-    this.otherPlayers = {};
   }
 
   preload() {
     
-  }
-
-  addPlayer(playerInfo) {
-    console.log('addPlayer: ' + playerInfo.name);
-  }
-
-  addOtherPlayers(playerInfo) {
-    console.log('addOtherPlayers: ' + playerInfo.name);      
-    this.otherPlayers[playerInfo.playerId] = playerInfo.name;
-  }
+  }  
 
   create() {
     let self = this;
-
-    self.socket = io();
-    
-    self.socket.on('initGame', function () {          
-        console.log("initGame");
-
-        self.scene.start('game', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})
-    });
-
-    self.socket.on('currentPlayers', function (players) {
-      Object.keys(self.players).forEach(function (id) {
-        if (self.players[id].playerId === self.socket.id) {
-          self.addPlayer(self.players[id]);
-        } else {
-          self.addOtherPlayers(self.players[id]);
-        }
-      });
-    });
-
-    self.socket.on('addPlayer', function (playerInfo) {          
-      self.addOtherPlayers(playerInfo);
-    });
-    
-    self.socket.on('removePlayer', function (playerId) {
-      console.log("removePlayer");
-
-      if (self.otherPlayers.hasOwnProperty(playerId)) {            
-        delete self.otherPlayers[playerId]
-      }
-    });
-    
-    self.scene.start('title', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})
+    self.scene.start('title')
   }  
 }
 
 class TitleScene extends Phaser.Scene {
-  
-  socket;
-  players;
-  otherPlayers;
-
   constructor() {    
-    super({ key: 'title'});
-
-    this.socket = null;
-    this.players = {};
-    this.otherPlayers = {};    
+    super({ key: 'title'});   
   }
 
-  init(data) {    
-    this.socket = data.socket;
-    this.players = data.players;
-    this.otherPlayers = data.otherPlayers;
+  init(data) {
   }
 
   preload() {
@@ -95,7 +34,7 @@ class TitleScene extends Phaser.Scene {
 
     join_button.on('pointerdown', function (pointer) {
       this.setTint(0xff0000);
-      self.scene.start('wait', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})  
+      self.scene.start('wait')
     });    
   }
 }
@@ -105,29 +44,82 @@ class WaitScene extends Phaser.Scene {
   socket;
   players;
   otherPlayers;
+  updateTextTimer;
+  currentPlayerCount;
+  text;
 
   constructor() {    
     super({ key: 'wait'});
 
     this.socket = null;
     this.players = {};
-    this.otherPlayers = {};    
+    this.otherPlayers = {};
+    this.currentPlayerCount = 0;
+    this.text = null;
   }
 
-  init(data) {    
-    this.socket = data.socket;
-    this.players = data.players;
-    this.otherPlayers = data.otherPlayers;
+  init(data) {
   }
 
   preload() {
     this.load.image('wait_background', 'assets/wait_screen.png');
     this.load.audio('tik_tok', 'assets/tik_tok.mp3');
-    this.load.spritesheet('hourglass_spritesheet', 'assets/hourglass_spritesheet.png', { frameWidth: 276, frameHeight: 276});
+    this.load.spritesheet('hourglass_spritesheet', 'assets/hourglass_spritesheet.png', { frameWidth: 276, frameHeight: 276});    
+    this.load.bitmapFont('atari', 'assets/atari-classic.png', 'assets/atari-classic.xml');
+  }
+
+
+  addPlayer(playerInfo) {
+    console.log('addPlayer: ' + playerInfo.name);
+  }
+
+  addOtherPlayers(playerInfo) {
+    console.log('addOtherPlayers: ' + playerInfo.name);      
+    this.otherPlayers[playerInfo.playerId] = playerInfo.name;
+    this.currentPlayerCount += 1;    
   }
 
   create() {
-    let self = this;
+    let self = this;    
+    self.socket = io();    
+    
+    self.socket.on('addPlayer', function (playerInfo) {                
+      self.addOtherPlayers(playerInfo);
+    });
+
+    self.socket.on('removePlayer', function (playerId) {
+      self.currentPlayerCount -= 1;
+
+      if (self.otherPlayers.hasOwnProperty(playerId)) {            
+        delete self.otherPlayers[playerId]        
+      }
+    });
+
+    self.socket.on('initGame', function () {          
+      console.log("initGame");
+
+      self.scene.start('game', {'socket': self.socket})
+    });
+    
+    self.socket.on('currentPlayers', function (players) {
+
+      self.currentPlayerCount = Object.keys(players).length;      
+
+      Object.keys(self.players).forEach(function (id) {
+        if (self.players[id].playerId === self.socket.id) {
+          self.addPlayer(self.players[id]);
+        } else {
+          self.addOtherPlayers(self.players[id]);
+        }
+      });
+    });
+
+    self.updateTextTimer = this.time.addEvent({
+      callback: self.timerEvent,
+      callbackScope: this,
+      delay: 2000,
+      loop: true
+    });
 
     this.add.image(400, 300, 'wait_background');
 
@@ -141,6 +133,8 @@ class WaitScene extends Phaser.Scene {
   });
 
     sprite.play('spin');
+    
+    self.text = self.add.bitmapText(80, 700, 'atari', '', 32);
 
     self.backgroundSound = this.sound.play('tik_tok', {
       mute: false,
@@ -162,13 +156,21 @@ class WaitScene extends Phaser.Scene {
       }      
     });    
   }
+
+ timerEvent() {
+    let playersRequired = Settings.player.count - this.currentPlayerCount;    
+
+    this.text.setText("Waiting for " + playersRequired + " more");    
+
+    if (playersRequired === 0) {      
+      this.updateTextTimer.remove(false);
+    }
+  }
 }
 
 class EndScene extends Phaser.Scene {
   
-  socket;
-  players;
-  otherPlayers;
+  socket;  
   tileData;
 
   tile1;
@@ -180,8 +182,6 @@ class EndScene extends Phaser.Scene {
     super({ key: 'end'});
 
     this.socket = null;    
-    this.players = {};
-    this.otherPlayers = {};    
     this.tileData = null;
 
     this.tile1 = null;
@@ -192,8 +192,6 @@ class EndScene extends Phaser.Scene {
 
   init(data) {    
     this.socket = data.socket;
-    this.players = data.players;
-    this.otherPlayers = data.otherPlayers;
     this.tileData = data.tileData;    
   }
 
@@ -247,9 +245,10 @@ class EndScene extends Phaser.Scene {
     }
   }
   
-  create () {
-    let PLAYER_COUNT = 4;
+  create () {    
     let self = this;
+    this.socket.disconnect(true);
+
     //this.add.image(0, 0, 'end_background').setOrigin(0, 0);
 
     this.tile0 = this.textures.createCanvas('tile0', 800, 800);
@@ -278,18 +277,21 @@ class EndScene extends Phaser.Scene {
 
     for (let j = 0; j < 800; j += 80) {      
       for (let i = 0; i < 800; i += 80) {
-        let tileId = 'tile' + (tileIndex++ % PLAYER_COUNT);
+        let tileId = 'tile' + (tileIndex++ % Settings.player.count);
 
         this.add.image(i, j, tileId).setOrigin(0, 0).setScale(0.1);
       }
     }
 
+    // FIXME: Cannot join immediately after finishing a game
+    /*
     var join_button = this.add.image(400, 700, 'join_button').setInteractive();
 
     join_button.on('pointerdown', function (pointer) {
       this.setTint(0xff0000);
-      self.scene.start('wait', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers})  
+      self.scene.start('wait')
     });
+    */
   }  
 }
 
@@ -300,9 +302,7 @@ class GameScene extends Phaser.Scene {
   points;
   images;
   currentBrush;
-  socket;
-  otherPlayers;
-  players;
+  socket;  
 
   constructor ()
   {    
@@ -315,15 +315,11 @@ class GameScene extends Phaser.Scene {
 
     this.currentBrush = 'red_color';
 
-    this.socket = null;
-    this.players = {};
-    this.otherPlayers = {};
+    this.socket = null;    
   } 
 
   init(data) {    
-    this.socket = data.socket;
-    this.players = data.players;
-    this.otherPlayers = data.otherPlayers;
+    this.socket = data.socket;    
   }
 
   preload ()
@@ -404,7 +400,7 @@ class GameScene extends Phaser.Scene {
       });
 
       self.socket.on('endGame', function (data) {
-        self.scene.start('end', {'socket': self.socket, 'players': self.players, 'otherPlayers': self.otherPlayers, 'tileData': data})
+        self.scene.start('end', {'socket': self.socket, 'tileData': data})
       });
   }
 

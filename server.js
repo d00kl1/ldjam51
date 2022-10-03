@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 let players = {};
 let rooms = {};
 
-const ROOM_COUNT = 10;
+const ROOM_COUNT = 1;
 const PLAYER_COUNT = 4;
 const TURN_TIME = 10 * 1000;
 
